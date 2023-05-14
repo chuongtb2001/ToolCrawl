@@ -1,17 +1,26 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const Papa = require('papaparse');
+const dotenv = require('dotenv');
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: "new" });
+  //load env
+  dotenv.config()
+  const browser = await puppeteer.launch({
+    args: [`--proxy-server=${process.env.PROXYSERVER}`],
+  });
   const page = await browser.newPage();
+
+  await page.authenticate({
+    username: process.env.USER,
+    password: process.env.PASSWORD
+  });
+
   let pageNumber = 0
-  // let amountPerPage = 1
   let productsJson = []
   //get products in page < 1
   while (pageNumber < 1) {
     pageNumber += 1
-    console.log("--------------------------------")
     const productInfo = {
       productName: "",
       productPrice: "",
