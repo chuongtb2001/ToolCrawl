@@ -12,6 +12,7 @@
   "dependencies": {
     "fs": "^0.0.1-security",
     "papaparse": "^5.4.1",
+    "proxy-chain": "^2.3.0",
     "puppeteer": "^19.11.1"
   }
 }
