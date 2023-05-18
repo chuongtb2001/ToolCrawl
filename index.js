@@ -130,7 +130,13 @@ function sleep(ms) {
           (elements) => elements.map((el) => el.src)
         )
       } catch (error) {
-        productInfo.productImgs = []
+        //case product has 1 image
+        try {
+          const link = await page.$eval(".product-images img", (el) => el.src);
+          productInfo.productImgs = [link];
+        } catch (error) {
+          productInfo.productImgs = [];
+        }
       }
       //import new product to csv
       try {
