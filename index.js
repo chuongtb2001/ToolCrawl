@@ -129,18 +129,17 @@ function sleep(ms) {
         productInfo.productPriceSale = ""
       }
       //get product images
-      try {
-        productInfo.productImgs = await page.$$eval(
-          ".thumbnail-images img",
-          (elements) => elements.map((el) => el.src)
-        )
-      } catch (error) {
+      productInfo.productImgs = await page.$$eval(
+        ".thumbnail-images img",
+        (elements) => elements.map((el) => el.src)
+      )
+      if (productInfo.productImgs.length < 1) {
         //case product has 1 image
         try {
           const link = await page.$eval(".product-images img", (el) => el.src);
           productInfo.productImgs = [link];
         } catch (error) {
-          productInfo.productImgs = [];
+          productInfo.productImgs = []
         }
       }
       //import new product to csv
@@ -156,5 +155,6 @@ function sleep(ms) {
       }
     }
   }
+  console.log("Crawl done")
   await browser.close()
 })()
