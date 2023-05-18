@@ -9,6 +9,7 @@ const proxies = [
   "http://ABUxEp:sUWc0m@181.177.87.231:9469",
 ]
 
+const url = process.argv[2];
 let countReq = 0;
 let proxyUrlIndex = 0;
 
@@ -56,15 +57,15 @@ function sleep(ms) {
     //go to page have list products
     try {
       await page.goto(
-        `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers`,
+        url.replace("{pageNumber}", pageNumber),
         { timeout: 60000 }
       );
     } catch (error) {
       console.log("---\nERROR")
-      console.log("Failed to load page: " + `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n---`)
+      console.log("Failed to load page: " + `${url.replace("{pageNumber}", pageNumber)}\n---`)
       await fs.promises.appendFile(
         "error.csv",
-        `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n`
+        `${url.replace("{pageNumber}", pageNumber)}\n`
       );
     }
     const productHrefList = await page.$$eval(
