@@ -57,11 +57,12 @@ function sleep(ms) {
     try {
       await page.goto(
         `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers`,
-        { timeout: 100000 }
-    )
+        { timeout: 60000 }
+      );
     } catch (error) {
       console.log("---\nERROR")
       console.log("Failed to load page: " + `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n---`)
+      await fs.promises.appendFile("error.csv", `${productInfo.productUrl}"\n`)
     }
     const productHrefList = await page.$$eval(
       ".product-image-container a",
@@ -86,13 +87,17 @@ function sleep(ms) {
       productInfo.productUrl = productHref
       //go to page
       try {
-        const pageProduct = await page.goto(productHref, { timeout: 300000 })
+        const pageProduct = await page.goto(productHref, { timeout: 60000 })
         if (pageProduct.status() !== 200) {
           continue
         }
       } catch (error) {
         console.log("---\nERROR")
         console.log("Failed to load page: " + `${productHref}\n---`)
+        await fs.promises.appendFile(
+          "error.csv",
+          `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n`
+        );
         continue
       }
       //get information about products
@@ -140,7 +145,10 @@ function sleep(ms) {
       }
       //import new product to csv
       try {
-        await fs.promises.appendFile("output.csv", `${productInfo.productUrl},${productInfo.productName},${productInfo.productPrice},${productInfo.productPriceSale},"${productInfo.productImgs.toString()}"\n`)
+        await fs.promises.appendFile(
+          "output.csv",
+          `${productInfo.productUrl},${productInfo.productName},${productInfo.productPrice},${productInfo.productPriceSale},"${productInfo.productImgs.toString()}"\n`
+        );
         console.log(`---\n${productInfo.productName} is saved successfully\n---`)
       } catch (error) {
         console.log("---\nERROR")
