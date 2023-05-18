@@ -6,13 +6,13 @@ const useProxy = require('puppeteer-page-proxy')
 const proxies = [
   "http://kYEYnV:3STBp4@181.177.103.220:9580",
   "http://kYEYnV:3STBp4@131.108.17.29:9202",
-  "http://ABUxEp:sUWc0m@181.177.87.231:9469", //can access
+  "http://ABUxEp:sUWc0m@181.177.87.231:9469",
 ]
 
 let countReq = 0;
 let proxyUrlIndex = 0;
 
-async function changeProxy(page){
+async function setUpProxy(page){
   page.removeAllListeners("request")
 
   await page.setRequestInterception(true)
@@ -26,59 +26,76 @@ async function changeProxy(page){
           proxyUrlIndex >= proxies.length - 1 ? 0 : proxyUrlIndex + 1
         //reset count request
         countReq = 0
-        console.log("Change proxy")
+        console.log("Change proxy: ", proxies[proxyUrlIndex])
       }
       const oldProxyUrl = proxies[proxyUrlIndex]
-      console.log(oldProxyUrl)
-
       const newProxyUrl = await proxyChain.anonymizeProxy(oldProxyUrl)
       await useProxy(request, newProxyUrl)
     }
   })
 }
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 (async () => {
   const browser = await puppeteer.launch({})
   const page = await browser.newPage()
-  await changeProxy(page, proxies[proxyUrlIndex])
+  // await page.setUserAgent(
+  //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
+  //  )
+  await setUpProxy(page)
 
-  let pageNumber = 1  
-  // get products
-  while (pageNumber < 100) {
-    const productInfo = {
-      productUrl: "",
-      productName: "",
-      productPrice: "",
-      productPriceSale: "",
-      productImgs: [],
-    }
-    const mainPage = await page.goto(
+  console.log("Start crawl")
+  console.log("Proxy current use: "+ proxies[proxyUrlIndex])
+
+  let pageNumber = 0
+  while (true) {
+    pageNumber += 1
+    //go to page have list products
+    try {
+      await page.goto(
         `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers`,
         { timeout: 100000 }
-      )
-      // const data = await useProxy.lookup(page)
-      // console.log(data.ip)
-      // change ip
+    )
+    } catch (error) {
+      console.log("---\nERROR")
+      console.log("Failed to load page: " + `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n---`)
+    }
     const productHrefList = await page.$$eval(
       ".product-image-container a",
       (elements) => {
         return elements.map((el) => el.href)
       }
     )
+    //check product list is empty
+    if (productHrefList.length < 1) {
+      break
+    }
+
     for (const productHref of productHrefList) {
-      //
+      //init product information
+      const productInfo = {
+        productUrl: "",
+        productName: "",
+        productPrice: "",
+        productPriceSale: "",
+        productImgs: [],
+      }
       productInfo.productUrl = productHref
-      //get page
+      //go to page
       try {
         const pageProduct = await page.goto(productHref, { timeout: 300000 })
         if (pageProduct.status() !== 200) {
           continue
         }
       } catch (error) {
-        console.log(error)
+        console.log("---\nERROR")
+        console.log("Failed to load page: " + `${productHref}\n---`)
         continue
       }
       //get information about products
-
       //get product name
       try {
         productInfo.productName = await page.$eval(
@@ -116,11 +133,13 @@ async function changeProxy(page){
         productInfo.productImgs = []
       }
       //import new product to csv
-      fs.appendFile("output.csv", `${productInfo.productUrl},${productInfo.productName},${productInfo.productPrice},${productInfo.productPriceSale},"${productInfo.productImgs.toString()}"\n`, (err) => {
-        if (err) throw err
-        console.log(`${productInfo.productName} is saved successfully`)
-        console.log("---")
-      })
+      try {
+        await fs.promises.appendFile("output.csv", `${productInfo.productUrl},${productInfo.productName},${productInfo.productPrice},${productInfo.productPriceSale},"${productInfo.productImgs.toString()}"\n`)
+        console.log(`---\n${productInfo.productName} is saved successfully\n---`)
+      } catch (error) {
+        console.log("---\nERROR")
+        console.log(`${productInfo.productName} is save failure\n---`)
+      }
     }
   }
   await browser.close()
