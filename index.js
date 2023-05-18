@@ -62,7 +62,10 @@ function sleep(ms) {
     } catch (error) {
       console.log("---\nERROR")
       console.log("Failed to load page: " + `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n---`)
-      await fs.promises.appendFile("error.csv", `${productInfo.productUrl}"\n`)
+      await fs.promises.appendFile(
+        "error.csv",
+        `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n`
+      );
     }
     const productHrefList = await page.$$eval(
       ".product-image-container a",
@@ -94,10 +97,7 @@ function sleep(ms) {
       } catch (error) {
         console.log("---\nERROR")
         console.log("Failed to load page: " + `${productHref}\n---`)
-        await fs.promises.appendFile(
-          "error.csv",
-          `https://www.fanatics.com/nba/los-angeles-lakers/men/o-2447+t-69584146+ga-56+z-820-817603699?pageSize=72&pageNumber=${pageNumber}&sortOption=TopSellers\n`
-        );
+        await fs.promises.appendFile("error.csv", `${productHref}"\n`);
         continue
       }
       //get information about products
