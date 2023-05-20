@@ -4,9 +4,9 @@ const proxyChain = require('proxy-chain')
 const useProxy = require('puppeteer-page-proxy')
 
 const proxies = [
-  "http://kYEYnV:3STBp4@181.177.103.220:9580",
-  "http://kYEYnV:3STBp4@131.108.17.29:9202",
-  "http://ABUxEp:sUWc0m@181.177.87.231:9469",
+  "http://0x31sf:Qg4VwH@181.177.87.216:9227",
+  "http://0x31sf:Qg4VwH@181.177.85.193:9034",
+  "http://0x31sf:Qg4VwH@181.177.86.25:9519",
 ]
 
 const url = process.argv[2];
@@ -42,7 +42,7 @@ function sleep(ms) {
 }
 
 (async () => {
-  const browser = await puppeteer.launch({})
+  const browser = await puppeteer.launch()
   const page = await browser.newPage()
   // await page.setUserAgent(
   //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36'
@@ -193,5 +193,5 @@ function sleep(ms) {
     }
   }
   console.log("Crawl done")
-  await browser.close()
+  // await browser.close()
 })()
