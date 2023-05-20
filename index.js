@@ -92,6 +92,9 @@ function sleep(ms) {
         productPrice: "",
         productPriceSale: "",
         productImgs: [],
+        productSize: [],
+        productDescription: "",
+        productCustom: false,
       }
       productInfo.productUrl = productHref
       //go to page
