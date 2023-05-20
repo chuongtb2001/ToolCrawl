@@ -10,6 +10,7 @@ const proxies = [
 ]
 
 const url = process.argv[2];
+let filename = ''
 let countReq = 0;
 let proxyUrlIndex = 0;
 
@@ -78,7 +79,11 @@ function sleep(ms) {
     if (productHrefList.length < 1) {
       break
     }
-
+    //get file name through breadcrumb-text
+    filename = await page.$eval(
+      ".breadcrumb-text",
+      (el) => el.textContent
+    )
     for (const productHref of productHrefList) {
       //init product information
       const productInfo = {
@@ -94,6 +99,11 @@ function sleep(ms) {
         const pageProduct = await page.goto(productHref, { timeout: 60000 })
         if (pageProduct.status() !== 200) {
           continue
+        }
+        const titlePage = await page.title()
+        if (titlePage === "Access Denied") {
+          console.log("---\nERROR\n" + proxies[proxyUrlIndex])
+
         }
       } catch (error) {
         console.log("---\nERROR")
@@ -143,11 +153,34 @@ function sleep(ms) {
           productInfo.productImgs = []
         }
       }
+      //get product size
+      productInfo.productSize = await page.$$eval(
+        ".buy-box-size-selector .size-text",
+        (elements) => elements.map((el) => el.textContent)
+      )
+      //get product description
+      try {
+        productInfo.productDescription = await page.$eval(
+          ".product-description .description-box-content div",
+          (el) => el.textContent
+        )
+      } catch (error) {
+        productInfo.productDescription = ""
+      }
+      //check product have custom properties
+      try {
+        productInfo.productCustom = await page.$eval(
+          ".buy-box-custom-options-container",
+          (el) => el.hasChildNodes()
+        )
+      } catch (error) {
+        productInfo.productCustom = false
+      }
       //import new product to csv
       try {
         await fs.promises.appendFile(
-          "output.csv",
-          `${productInfo.productUrl},${productInfo.productName},${productInfo.productPrice},${productInfo.productPriceSale},"${productInfo.productImgs.toString()}"\n`
+          `${filename}.csv`,
+          `${productInfo.productUrl},${productInfo.productName},${productInfo.productPrice},${productInfo.productPriceSale},"${productInfo.productImgs.toString()}","${productInfo.productSize.toString()}",${productInfo.productCustom},"${productInfo.productDescription}"\n`
         );
         console.log(`---\n${productInfo.productName} is saved successfully\n---`)
       } catch (error) {
