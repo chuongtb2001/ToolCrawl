@@ -10,5 +10,5 @@ npm install
 ```
 - Build and run the project
 ```
-npm run dev
+npm run dev -- <url>
 ```
