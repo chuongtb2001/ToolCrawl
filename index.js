@@ -201,8 +201,8 @@ function sleep(ms) {
         }
       }
     }
+    console.log("Crawl done: " + filename)
   }
-
-  console.log("Crawl done")
+  console.log("Finish")
   await browser.close()
 })()
